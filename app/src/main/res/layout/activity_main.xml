@@ -124,13 +124,11 @@
             android:text="Log Infos"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <EditText
+        <TextView
             android:id="@+id/tvDebugInfo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#e4e4e4"
-            android:ems="10"
-            android:inputType="textMultiLine" />
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#d3d3d3" />
 
     </LinearLayout>
 </RelativeLayout>

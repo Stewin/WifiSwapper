@@ -5,7 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import net.ddns.swinterberger.wifiswapper.eventhandler.tresholdSeekbarEventhandler;
+import net.ddns.swinterberger.wifiswapper.eventhandler.MarginSeekbarEventhandler;
+import net.ddns.swinterberger.wifiswapper.eventhandler.TresholdSeekbarEventhandler;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
         marginValue = (TextView) findViewById(R.id.tvMarginValue);
 
         tresholdSeekbar = (SeekBar) findViewById(R.id.seekBar_Treshold);
-        tresholdSeekbar.setOnSeekBarChangeListener(new tresholdSeekbarEventhandler(this.tresholdValue));
+        tresholdSeekbar.setOnSeekBarChangeListener(new TresholdSeekbarEventhandler(this.tresholdValue));
 
         marginSeekbar = (SeekBar) findViewById(R.id.seekBar_Margin);
-        //marginSeekbar.setOnSeekBarChangeListener();
+        marginSeekbar.setOnSeekBarChangeListener(new MarginSeekbarEventhandler(this.marginValue));
     }
 }

@@ -1,22 +1,23 @@
 package net.ddns.swinterberger.wifiswapper.eventhandler;
 
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 /**
  * Created by Stefan on 05.03.2016.
  */
-public class TresholdSeekbarEventhandler implements SeekBar.OnSeekBarChangeListener {
+public class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
 
-    private TextView tresholdValue;
+    private TextView marginValue;
 
-    public TresholdSeekbarEventhandler(final TextView tresholdValue) {
-        this.tresholdValue = tresholdValue;
+    public MarginSeekbarEventhandler(TextView marginValue) {
+        this.marginValue = marginValue;
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        tresholdValue.setText(String.valueOf(seekBar.getProgress() / 10));
+        marginValue.setText(String.valueOf(seekBar.getProgress() / 10));
     }
 
     @Override
