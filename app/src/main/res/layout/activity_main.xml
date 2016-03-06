@@ -19,7 +19,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:text="Signal Treshold for Swapping"
+            android:text="Signal Threshold for Swapping"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <LinearLayout
