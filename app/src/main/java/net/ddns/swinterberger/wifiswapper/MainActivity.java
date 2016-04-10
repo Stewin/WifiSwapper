@@ -1,12 +1,13 @@
 package net.ddns.swinterberger.wifiswapper;
 
 import android.content.Intent;
-import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -41,13 +42,11 @@ public class MainActivity extends AppCompatActivity {
         ThresholdSeekbarEventhandler thresholdSeekbarEventhandler = new ThresholdSeekbarEventhandler(this);
         thresholdSeekbarEventhandler.setThresholdValue(this.tresholdValue);
         thresholdSeekbar.setOnSeekBarChangeListener(thresholdSeekbarEventhandler);
-        thresholdSeekbarEventhandler.setTHRESOLD_PREFERENCE_NAME(this.THRESHOLD_PREFERENCE_NAME);
 
         marginSeekbar = (SeekBar) findViewById(R.id.seekBar_Margin);
         MarginSeekbarEventhandler marginSeekbarEventhandler = new MarginSeekbarEventhandler(this);
         marginSeekbarEventhandler.setMarginValue(this.marginValue);
         marginSeekbar.setOnSeekBarChangeListener(marginSeekbarEventhandler);
-        marginSeekbarEventhandler.setMARGIN_PREFERENCE_NAME(this.MARGIN_PREFERENCE_NAME);
     }
 
     private void loadPreferences() {
