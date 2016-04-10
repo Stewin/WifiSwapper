@@ -15,6 +15,8 @@ import java.util.List;
  */
 public class WifiScanReceiver extends BroadcastReceiver {
 
+    private MainActivity mainActivity;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -31,5 +33,13 @@ public class WifiScanReceiver extends BroadcastReceiver {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 
         Log.d("Debug", "onReceive() message: " + message);
+
+        if (mainActivity != null) {
+            mainActivity.appendDebugInfos("Test");
+        }
+    }
+
+    public void setMainActivity(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
     }
 }

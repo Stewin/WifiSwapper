@@ -1,6 +1,5 @@
 package net.ddns.swinterberger.wifiswapper;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -10,7 +9,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -83,14 +81,18 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        BroadcastReceiver receiver = null;
+        WifiScanReceiver receiver = null;
 
         // Register Broadcast Receiver
-        if (receiver == null)
+        if (receiver == null) {
             receiver = new WifiScanReceiver();
+            receiver.setMainActivity(this);
+        }
 
-        registerReceiver(receiver, new IntentFilter(
-                WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        Log.d("TAG", "onCreate()");
+        registerReceiver(receiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
+    public void appendDebugInfos(String string) {
+        debugInfos.append(string + "\n");
     }
 }
