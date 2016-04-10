@@ -26,6 +26,8 @@
             </intent-filter>
         </receiver>
 
+        <service android:name=".WifiSwapService" />
+
     </application>
 
 </manifest>

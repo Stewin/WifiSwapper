@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Wifi Swapper</string>
+    <string name="intentextrathreshold">IntentExtraThreshold</string>
+    <string name="intentextramargin">IntentExtraMargin</string>
+    <string name="marginpreferencename">MarginPreference</string>
+    <string name="thresholdpreferencename">ThresholdPreference</string>
 </resources>

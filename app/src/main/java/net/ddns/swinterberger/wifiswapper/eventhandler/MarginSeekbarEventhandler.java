@@ -7,13 +7,14 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import net.ddns.swinterberger.wifiswapper.R;
+
 /**
  * Created by Stefan on 05.03.2016.
  */
 public class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
 
     private final Context context;
-    private String MARGIN_PREFERENCE_NAME;
     private TextView marginValue;
 
     public MarginSeekbarEventhandler(Context context) {
@@ -26,12 +27,12 @@ public class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
         int seekBarValue = seekBar.getProgress();
 
         if (marginValue != null) {
-            marginValue.setText(String.valueOf(seekBarValue / 10));
+            marginValue.setText(String.valueOf(seekBarValue));
         }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.context);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt(this.MARGIN_PREFERENCE_NAME, seekBarValue);
+        editor.putInt(context.getResources().getString(R.string.marginpreferencename), seekBarValue);
         editor.apply();
     }
 
@@ -51,13 +52,5 @@ public class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
 
     public void setMarginValue(TextView marginValue) {
         this.marginValue = marginValue;
-    }
-
-    public String getMARGIN_PREFERENCE_NAME() {
-        return MARGIN_PREFERENCE_NAME;
-    }
-
-    public void setMARGIN_PREFERENCE_NAME(String MARGIN_PREFERENCE_NAME) {
-        this.MARGIN_PREFERENCE_NAME = MARGIN_PREFERENCE_NAME;
     }
 }
