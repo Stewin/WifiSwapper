@@ -3,7 +3,9 @@ package net.ddns.swinterberger.wifiswapper;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -142,5 +144,19 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         public void onServiceDisconnected(ComponentName name) {
             serviceBinder = null;
         }
+
+        WifiScanReceiver receiver = null;
+
+        // Register Broadcast Receiver
+        if (receiver == null) {
+            receiver = new WifiScanReceiver();
+            receiver.setMainActivity(this);
+        }
+
+        registerReceiver(receiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
+    public void appendDebugInfos(String string) {
+        debugInfos.append(string + "\n");
     }
 }
