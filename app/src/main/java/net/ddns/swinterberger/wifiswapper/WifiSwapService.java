@@ -6,72 +6,60 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
-import android.widget.Toast;
 
 /**
- * Created by Stefan on 12.03.2016.
+ * Background Service, who keeps running, when the Activity is closed. Uses the Broadcast-Receiver.
+ *
+ * @author Stefan Winterberger
+ * @version 0.1.0_Prototype
  */
 public class WifiSwapService extends Service {
 
     private WifiScanReceiver wifiScanReceiver = null;
-    private int threshold, margin;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.i("WifiSwapService", "onCreate()");
-        Toast.makeText(WifiSwapService.this, "WifiSwapService Created", Toast.LENGTH_SHORT).show();
-    }
+    private SwapperServiceBinder swapperServiceBinder;
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(wifiScanReceiver);
         super.onDestroy();
-        Log.i("WifiSwapService", "onDestroy()");
-        Toast.makeText(WifiSwapService.this, "WifiSwapService Destroied", Toast.LENGTH_SHORT).show();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        if (swapperServiceBinder == null) {
+            swapperServiceBinder = new SwapperServiceBinder();
+        }
+        return swapperServiceBinder;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        // Setup WiFi
-//        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
-        // Get WiFi status
-//        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-//        Log.i("WiFi Status Service: ", wifiInfo.toString());
-
-        // List available networks
-//        List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
-//        if (configs != null) {
-//            for (WifiConfiguration config : configs) {
-//                Log.i("Configs of Service", config.toString());
-//            }
-//        }
-
-        this.threshold = intent.getIntExtra(getResources().getString(R.string.intentextrathreshold), 3);
-        this.margin = intent.getIntExtra(getResources().getString(R.string.intentextramargin), 3);
+        int threshold = intent.getIntExtra(getResources().getString(R.string.intentextrathreshold), 3);
+        int margin = intent.getIntExtra(getResources().getString(R.string.intentextramargin), 3);
 
         // Register Broadcast Receiver
         if (wifiScanReceiver == null) {
             wifiScanReceiver = new WifiScanReceiver();
             wifiScanReceiver.setWifiSwapService(this);
-            wifiScanReceiver.setThreshold(this.threshold);
-            wifiScanReceiver.setMargin(this.margin);
+            wifiScanReceiver.setThreshold(threshold);
+            wifiScanReceiver.setMargin(margin);
         }
         registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         return START_REDELIVER_INTENT;
     }
 
-    public void scanResultsAvailable() {
-        Log.i("ScanResultCallback", "ScanResultAvailable called");
+    /**
+     * If the Activity is open, this Method logs a Massage on the Debug-Info-Textfield.
+     *
+     * @param logMessage The Message to log.
+     */
+    public void logInformation(final String logMessage) {
+        if (swapperServiceBinder.isMainActivityAvailable()) {
+            swapperServiceBinder.getMainActivity().logMessage(logMessage);
+        }
     }
 }
