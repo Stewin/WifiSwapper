@@ -1,11 +1,17 @@
 package net.ddns.swinterberger.wifiswapper;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+
+import java.util.List;
 
 /**
  * Background Service, who keeps running, when the Activity is closed. Uses the Broadcast-Receiver.
@@ -13,43 +19,52 @@ import android.support.annotation.Nullable;
  * @author Stefan Winterberger
  * @version 0.1.0_Prototype
  */
-public class WifiSwapService extends Service {
+public final class WifiSwapService extends Service {
 
+    private static final int WLAN_MINIMAL_STRENGTH = -95; //Entspricht einem WLAN-Signal von zirka 1%
+    private static final int WLAN_MAXIMUM_STRENGTH = -35; //Entspricht einem WLAN-Signal von zirka 100 %
     private WifiScanReceiver wifiScanReceiver = null;
     private SwapperServiceBinder swapperServiceBinder;
+    private WifiManager wifiManager;
+
+    private int margin;
+    private int threshold;
 
     @Override
-    public void onDestroy() {
+    public final void onDestroy() {
         unregisterReceiver(wifiScanReceiver);
         super.onDestroy();
     }
 
     @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
+    public final IBinder onBind(final Intent intent) {
         if (swapperServiceBinder == null) {
             swapperServiceBinder = new SwapperServiceBinder();
+            swapperServiceBinder.setWifiSwapService(this);
         }
         return swapperServiceBinder;
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        int threshold = intent.getIntExtra(getResources().getString(R.string.intentextrathreshold), 3);
-        int margin = intent.getIntExtra(getResources().getString(R.string.intentextramargin), 3);
-
-        // Register Broadcast Receiver
         if (wifiScanReceiver == null) {
             wifiScanReceiver = new WifiScanReceiver();
             wifiScanReceiver.setWifiSwapService(this);
-            wifiScanReceiver.setThreshold(threshold);
-            wifiScanReceiver.setMargin(margin);
         }
         registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         return START_REDELIVER_INTENT;
+    }
+
+
+    private void getValuesFromBinder() {
+        if (swapperServiceBinder != null) {
+            margin = swapperServiceBinder.getMargin();
+            threshold = swapperServiceBinder.getThreshold();
+        }
     }
 
     /**
@@ -57,9 +72,71 @@ public class WifiSwapService extends Service {
      *
      * @param logMessage The Message to log.
      */
-    public void logInformation(final String logMessage) {
+    public final void logInformation(final String logMessage) {
         if (swapperServiceBinder.isMainActivityAvailable()) {
             swapperServiceBinder.getMainActivity().logMessage(logMessage);
         }
+    }
+
+    /**
+     * Can be called to notice the Service, that the Values (Margin, Threshold) has changed.
+     */
+    public void valuesChanged() {
+        getValuesFromBinder();
+    }
+
+    /**
+     * Handles the Callback from the WifiScanReceiver.
+     */
+    public void callbackFromWifiScanReceiver() {
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
+        // Calculate current WiFi Signal Strength (Normalized between 0-10)
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int currentSignalLevel = normalizeSignalStrength(wifiInfo.getRssi());
+
+        //Determine best Alternative
+        int bestAlternativeSignalLevel = 0;
+        ScanResult bestAlternative = null;
+        if (currentSignalLevel <= threshold) {
+            bestAlternative = getBestAlternative();
+            bestAlternativeSignalLevel = normalizeSignalStrength(bestAlternative.level);
+            logInformation("Best Alternative Strength " + bestAlternativeSignalLevel + "\n");
+        }
+
+        //If Difference between current Strength and best Alternative is more than the Margin, then Change
+        if ((bestAlternativeSignalLevel - currentSignalLevel) >= margin) {
+
+            //List available networks
+            List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
+            if (configs != null && bestAlternative != null) {
+                for (WifiConfiguration config : configs) {
+                    if (config.SSID.contains(bestAlternative.SSID)) {
+                        wifiManager.enableNetwork(config.networkId, true);
+                        wifiManager.reconnect();
+
+                    }
+                }
+            }
+        }
+
+        logInformation("Current Threshold: " + threshold + "\n");
+        logInformation("Current Margin: " + margin + "\n");
+    }
+
+    private ScanResult getBestAlternative() {
+        List<ScanResult> results = wifiManager.getScanResults();
+        ScanResult bestSignal = null;
+        for (ScanResult result : results) {
+            if (bestSignal == null || WifiManager.compareSignalLevel(bestSignal.level, result.level) < 0) {
+                bestSignal = result;
+            }
+        }
+        return bestSignal;
+    }
+
+    private int normalizeSignalStrength(final int rssi) {
+        float signalStrength = (float) (rssi - WLAN_MINIMAL_STRENGTH) / (WLAN_MAXIMUM_STRENGTH - WLAN_MINIMAL_STRENGTH) * 10;
+        return Math.abs((int) signalStrength);
     }
 }

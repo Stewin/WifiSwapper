@@ -1,56 +1,61 @@
 package net.ddns.swinterberger.wifiswapper.eventhandler;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import net.ddns.swinterberger.wifiswapper.MainActivity;
 import net.ddns.swinterberger.wifiswapper.R;
 
 /**
- * Created by Stefan on 05.03.2016.
+ * Eventhandler for the Seekbar to set the Margin.
+ *
+ * @author Stefan Winterberger
+ * @version 0.1.0_Prototype
  */
-public class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
+public final class MarginSeekbarEventhandler implements OnSeekBarChangeListener {
 
-    private final Context context;
+    private MainActivity mainActivity;
     private TextView marginValue;
 
-    public MarginSeekbarEventhandler(Context context) {
-        this.context = context;
+    /**
+     * Constructor with MainActivity of the App.
+     *
+     * @param mainActivity MainActivity of the App.
+     */
+    public MarginSeekbarEventhandler(final MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+    public final void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
         int seekBarValue = seekBar.getProgress();
 
         if (marginValue != null) {
             marginValue.setText(String.valueOf(seekBarValue));
         }
+    }
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.context);
+    @Override
+    public final void onStartTrackingTouch(SeekBar seekBar) {
+        //Not needed
+    }
+
+    @Override
+    public final void onStopTrackingTouch(SeekBar seekBar) {
+        int seekBarValue = seekBar.getProgress();
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mainActivity);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt(context.getResources().getString(R.string.marginpreferencename), seekBarValue);
+        editor.putInt(mainActivity.getResources().getString(R.string.marginpreferencename), seekBarValue);
         editor.apply();
+
+        mainActivity.marginSeekbarChanged();
     }
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    public TextView getMarginValue() {
-        return marginValue;
-    }
-
-    public void setMarginValue(TextView marginValue) {
+    public final void setMarginValue(TextView marginValue) {
         this.marginValue = marginValue;
     }
 }

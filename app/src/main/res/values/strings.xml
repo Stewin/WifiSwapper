@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Wifi Swapper</string>
-    <string name="intentextrathreshold">IntentExtraThreshold</string>
-    <string name="intentextramargin">IntentExtraMargin</string>
     <string name="marginpreferencename">MarginPreference</string>
     <string name="thresholdpreferencename">ThresholdPreference</string>
     <string name="serviceswitchpreferencename">serviceSwitchStatus</string>
+    <string name="label_disabled">Disabled</string>
+    <string name="label_enabled">Enabled</string>
 </resources>

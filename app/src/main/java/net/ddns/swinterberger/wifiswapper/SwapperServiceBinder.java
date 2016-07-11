@@ -3,33 +3,61 @@ package net.ddns.swinterberger.wifiswapper;
 import android.os.Binder;
 
 /**
- * Created by Stefan on 07.07.2016.
+ * Service Binder for a bound Service.
+ *
+ * @author Stefan Winterberger
+ * @version 0.1.0_Prototype
  */
-public class SwapperServiceBinder extends Binder implements SwapperServiceApi {
+public final class SwapperServiceBinder extends Binder implements SwapperServiceApi {
 
     private MainActivity mainActivity;
+    private int threshold;
+    private int margin;
+
+    private WifiSwapService wifiSwapService;
 
     @Override
-    public void registerMainActivity(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
-    }
-
-    @Override
-    public boolean isMainActivityAvailable() {
+    public final boolean isMainActivityAvailable() {
         return mainActivity != null;
     }
 
     @Override
-    public MainActivity getMainActivity() {
-
+    public final MainActivity getMainActivity() {
         return this.mainActivity;
-
     }
 
     @Override
-    public void testService() {
-        if (mainActivity != null) {
-            mainActivity.logMessage("Service running!\n");
+    public final void setMainActivity(final MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    @Override
+    public int getThreshold() {
+        return this.threshold;
+    }
+
+    @Override
+    public final void setThreshold(final int threshold) {
+        this.threshold = threshold;
+        if (wifiSwapService != null) {
+            wifiSwapService.valuesChanged();
         }
+    }
+
+    @Override
+    public int getMargin() {
+        return this.margin;
+    }
+
+    @Override
+    public final void setMargin(final int margin) {
+        this.margin = margin;
+        if (wifiSwapService != null) {
+            wifiSwapService.valuesChanged();
+        }
+    }
+
+    public void setWifiSwapService(WifiSwapService wifiSwapService) {
+        this.wifiSwapService = wifiSwapService;
     }
 }
