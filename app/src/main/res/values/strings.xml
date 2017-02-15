@@ -5,4 +5,5 @@
     <string name="serviceswitchpreferencename">serviceSwitchStatus</string>
     <string name="label_disabled">Disabled</string>
     <string name="label_enabled">Enabled</string>
+    <string name="timerpreferencename">timerpreferencename</string>
 </resources>

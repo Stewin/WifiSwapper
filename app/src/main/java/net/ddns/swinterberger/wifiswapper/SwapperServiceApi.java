@@ -57,4 +57,14 @@ public interface SwapperServiceApi {
      * @param margin new Margin.
      */
     void setMargin(int margin);
+
+    /**
+     * Get the TimerInterval.
+     *
+     * @return timerInterval
+     */
+    int getTimerInterval();
+
+    void setTimerInterval(int progress);
+
 }

@@ -9,6 +9,9 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -16,6 +19,7 @@ import android.widget.TextView;
 import net.ddns.swinterberger.wifiswapper.eventhandler.MarginSeekbarEventhandler;
 import net.ddns.swinterberger.wifiswapper.eventhandler.ServiceSwitchButtonEventHandler;
 import net.ddns.swinterberger.wifiswapper.eventhandler.ThresholdSeekbarEventhandler;
+import net.ddns.swinterberger.wifiswapper.eventhandler.TimerSeekbarEventhandler;
 
 /**
  * Main Activity of the WiFi-Swapper Application.
@@ -28,10 +32,13 @@ public final class MainActivity extends AppCompatActivity {
     private TextView debugInfos;
     private SeekBar thresholdSeekbar;
     private SeekBar marginSeekbar;
+    private SeekBar timerIntervalSeekbar;
     private Switch serviceSwitch;
     private Intent wifiSwapServiceIntent;
     private boolean serviceRunning;
     private SwapperServiceApi serviceBinder;
+    private boolean debugEnabled;
+    private ScrollView debugScrollview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +51,11 @@ public final class MainActivity extends AppCompatActivity {
 
     private void setupViewElements() {
         debugInfos = (TextView) findViewById(R.id.tvDebugInfo);
+        debugScrollview = (ScrollView) findViewById(R.id.sv_debugScrollView);
 
         TextView tresholdValue = (TextView) findViewById(R.id.tvThresoldValue);
         TextView marginValue = (TextView) findViewById(R.id.tvMarginValue);
+        TextView timerValue = (TextView) findViewById(R.id.tvTimerValue);
 
         thresholdSeekbar = (SeekBar) findViewById(R.id.seekBar_Treshold);
         ThresholdSeekbarEventhandler thresholdSeekbarEventhandler = new ThresholdSeekbarEventhandler(this);
@@ -58,20 +67,43 @@ public final class MainActivity extends AppCompatActivity {
         marginSeekbarEventhandler.setMarginValue(marginValue);
         marginSeekbar.setOnSeekBarChangeListener(marginSeekbarEventhandler);
 
+        timerIntervalSeekbar = (SeekBar) findViewById(R.id.seekBar_Timer);
+        TimerSeekbarEventhandler timerSeekbarEventHandler = new TimerSeekbarEventhandler(this);
+        timerSeekbarEventHandler.setTimerValue(timerValue);
+        timerIntervalSeekbar.setOnSeekBarChangeListener(timerSeekbarEventHandler);
+
         serviceSwitch = (Switch) findViewById(R.id.switch_serviceSwitch);
-        ServiceSwitchButtonEventHandler serviceSwitchButtonEventHandler =
-                new ServiceSwitchButtonEventHandler(this);
-        serviceSwitch.setOnCheckedChangeListener(serviceSwitchButtonEventHandler);
+        serviceSwitch.setOnCheckedChangeListener(new ServiceSwitchButtonEventHandler(this));
+
+        CheckBox cbDebugEnabled = (CheckBox) findViewById(R.id.cb_Debug);
+        cbDebugEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!isChecked) {
+                    buttonView.setChecked(false);
+                    MainActivity.this.debugEnabled = false;
+                    buttonView.setText(getResources().getString(R.string.label_disabled));
+                    debugInfos.setText("");
+                } else {
+                    buttonView.setChecked(true);
+                    MainActivity.this.debugEnabled = true;
+                    buttonView.setText(getResources().getString(R.string.label_enabled));
+                }
+            }
+        });
+
     }
 
     private void loadPreferences() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int currentMarginValue = preferences.getInt(getResources().getString(R.string.marginpreferencename), 0);
-        int currentThresholdValue = preferences.getInt(getResources().getString(R.string.thresholdpreferencename), 0);
+        int currentMarginValue = preferences.getInt(getResources().getString(R.string.marginpreferencename), 2);
+        int currentThresholdValue = preferences.getInt(getResources().getString(R.string.thresholdpreferencename), 7);
+        int currentTimerValue = preferences.getInt(getResources().getString(R.string.timerpreferencename), 0);
         serviceRunning = preferences.getBoolean(getResources().getString(R.string.serviceswitchpreferencename), false);
 
         this.marginSeekbar.setProgress(currentMarginValue);
         this.thresholdSeekbar.setProgress(currentThresholdValue);
+        this.timerIntervalSeekbar.setProgress(currentTimerValue);
         this.serviceSwitch.setChecked(serviceRunning);
     }
 
@@ -87,7 +119,7 @@ public final class MainActivity extends AppCompatActivity {
             serviceRunning = true;
         } catch (SecurityException secEx) {
             Log.e("WifiSwapperMain: ", "Error while starting the WifiSwapperService: " + secEx);
-            debugInfos.append("Error while starting the WifiSwapperService");
+            logMessage("Error while starting the WifiSwapperService");
         }
     }
 
@@ -103,35 +135,52 @@ public final class MainActivity extends AppCompatActivity {
                 }
             } catch (SecurityException secEx) {
                 Log.e("WifiSwapperMain: ", "Error while stoping the WifiSwapperService: " + secEx);
-                debugInfos.append("Error while stoping the WifiSwapperService");
+                debugInfos.append("Error while stopping the WifiSwapperService");
             }
         }
     }
 
     /**
-     * Prints a Log-Message to the Log-Textfield of the MainActivity.
+     * Prints a Log-Message to the Log-TextField of the MainActivity.
      *
      * @param logMessage Message to log.
      */
     public void logMessage(final String logMessage) {
-        this.debugInfos.append(logMessage);
+        if (debugEnabled && debugInfos != null) {
+            this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    debugInfos.append(logMessage);
+                    debugScrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                }
+            });
+        }
     }
 
     /**
-     * Callback for Handling the Change of the MarginSeekbar.
+     * Callback for Handling the Change of the Margin SeekBar.
      */
-    public void marginSeekbarChanged() {
+    public void marginSeekBarChanged() {
         if (serviceBinder != null) {
             serviceBinder.setMargin(this.marginSeekbar.getProgress());
         }
     }
 
     /**
-     * Callback for Handling the Change of the ThresholdSeekbar.
+     * Callback for Handling the Change of the ThresholdSeekBar.
      */
-    public void thresholdSeekbarChanged() {
+    public void thresholdSeekBarChanged() {
         if (serviceBinder != null) {
             serviceBinder.setThreshold(this.thresholdSeekbar.getProgress());
+        }
+    }
+
+    /**
+     * Callback for Handling the Change of the TimerSeekBar.
+     */
+    public void timerSeekBarChanged() {
+        if (serviceBinder != null) {
+            serviceBinder.setTimerInterval(this.timerIntervalSeekbar.getProgress());
         }
     }
 

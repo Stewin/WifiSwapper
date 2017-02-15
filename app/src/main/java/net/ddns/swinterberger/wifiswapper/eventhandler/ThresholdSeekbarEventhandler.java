@@ -9,7 +9,7 @@ import net.ddns.swinterberger.wifiswapper.MainActivity;
 import net.ddns.swinterberger.wifiswapper.R;
 
 /**
- * Eventhandler for the Seekbar to set the Threshold.
+ * EventHandler for the Seekbar to set the Threshold.
  *
  * @author Stefan Winterberger
  * @version 0.1.0_Prototype
@@ -51,7 +51,7 @@ public final class ThresholdSeekbarEventhandler implements SeekBar.OnSeekBarChan
         editor.putInt(mainActivity.getResources().getString(R.string.thresholdpreferencename), seekBarValue);
         editor.apply();
 
-        mainActivity.thresholdSeekbarChanged();
+        mainActivity.thresholdSeekBarChanged();
     }
 
     public final void setThresholdValue(TextView thresholdValue) {

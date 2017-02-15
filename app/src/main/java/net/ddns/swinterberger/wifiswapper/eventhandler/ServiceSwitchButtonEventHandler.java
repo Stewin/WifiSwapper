@@ -8,7 +8,7 @@ import net.ddns.swinterberger.wifiswapper.MainActivity;
 import net.ddns.swinterberger.wifiswapper.R;
 
 /**
- * Eventhandler for the SwitchButton, to enable/disable the Service.
+ * EventHandler for the SwitchButton, to enable/disable the Service.
  *
  * @author Stefan Winterberger
  * @version 0.1.0_Prototype

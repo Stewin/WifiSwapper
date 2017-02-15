@@ -13,6 +13,7 @@ public final class SwapperServiceBinder extends Binder implements SwapperService
     private MainActivity mainActivity;
     private int threshold;
     private int margin;
+    private int timerInterval;
 
     private WifiSwapService wifiSwapService;
 
@@ -52,6 +53,18 @@ public final class SwapperServiceBinder extends Binder implements SwapperService
     @Override
     public final void setMargin(final int margin) {
         this.margin = margin;
+        if (wifiSwapService != null) {
+            wifiSwapService.valuesChanged();
+        }
+    }
+
+    public int getTimerInterval() {
+        return this.timerInterval;
+    }
+
+    @Override
+    public void setTimerInterval(final int timer) {
+        this.timerInterval = timer;
         if (wifiSwapService != null) {
             wifiSwapService.valuesChanged();
         }
