@@ -58,18 +58,6 @@ public final class SwapperServiceBinder extends Binder implements SwapperService
         }
     }
 
-    public int getTimerInterval() {
-        return this.timerInterval;
-    }
-
-    @Override
-    public void setTimerInterval(final int timer) {
-        this.timerInterval = timer;
-        if (wifiSwapService != null) {
-            wifiSwapService.valuesChanged();
-        }
-    }
-
     public void setWifiSwapService(WifiSwapService wifiSwapService) {
         this.wifiSwapService = wifiSwapService;
     }

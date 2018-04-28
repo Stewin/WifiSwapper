@@ -37,16 +37,34 @@
                 android:text="Wifi Swapper Service"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
             <Switch
                 android:id="@+id/switch_serviceSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
+                android:layout_weight="1"
                 android:text="Disabled"
                 android:textOff="Disabled"
                 android:textOn="Enabled" />
 
+            <Switch
+                android:id="@+id/switch_serviceBound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:text="Unbound"
+                android:textOff="Unbound"
+                android:textOn="Bound" />
         </LinearLayout>
 
         <TextView
@@ -152,59 +170,6 @@
             android:layout_height="3dp"
             android:layout_marginBottom="20dp"
             android:background="#000000" />
-
-        <TextView
-            android:id="@+id/textView9"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:text="Intervall for Service Execution"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
-
-            <SeekBar
-                android:id="@+id/seekBar_Timer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.70"
-                android:max="60" />
-
-            <TextView
-                android:id="@+id/tvTimerValue"
-                android:layout_width="33dp"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
-            <TextView
-                android:id="@+id/textView10"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="right"
-                android:text="/ 60 min"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/textView11"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:text="If 0 the Service changes the AP only if new Scanresults are available."
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_marginBottom="20dp"
-            android:background="#000000"></FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

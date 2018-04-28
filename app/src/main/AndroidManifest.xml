@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
 
     <application
         android:allowBackup="true"
@@ -25,8 +26,13 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".UserPresentReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+
         <service android:name=".WifiSwapService" />
 
     </application>
-
 </manifest>

@@ -1,13 +1,16 @@
 package net.ddns.swinterberger.wifiswapper;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -17,9 +20,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import net.ddns.swinterberger.wifiswapper.eventhandler.MarginSeekbarEventhandler;
+import net.ddns.swinterberger.wifiswapper.eventhandler.ServiceBinderSwitchHandler;
 import net.ddns.swinterberger.wifiswapper.eventhandler.ServiceSwitchButtonEventHandler;
 import net.ddns.swinterberger.wifiswapper.eventhandler.ThresholdSeekbarEventhandler;
-import net.ddns.swinterberger.wifiswapper.eventhandler.TimerSeekbarEventhandler;
 
 /**
  * Main Activity of the WiFi-Swapper Application.
@@ -27,24 +30,51 @@ import net.ddns.swinterberger.wifiswapper.eventhandler.TimerSeekbarEventhandler;
  * @author Stefan Winterberger
  * @version 0.1.0_Prototype
  */
-public final class MainActivity extends AppCompatActivity {
+public final class MainActivity extends Activity {
 
     private TextView debugInfos;
     private SeekBar thresholdSeekbar;
     private SeekBar marginSeekbar;
-    private SeekBar timerIntervalSeekbar;
     private Switch serviceSwitch;
+    private final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
     private Intent wifiSwapServiceIntent;
     private boolean serviceRunning;
     private SwapperServiceApi serviceBinder;
     private boolean debugEnabled;
     private ScrollView debugScrollview;
+    private Switch serviceBinderSwitch;
+    private boolean serviceBound;
+    private android.content.ServiceConnection serviceConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        //Check Coarse Location Permission
+        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission is not granted
+            // Should we show an explanation?
+//            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+//                // Show an explanation to the user *asynchronously* -- don't block
+//                // this thread waiting for the user's response! After the user
+//                // sees the explanation, try again to request the permission.
+//            } else {
+//                // No explanation needed, we can request the permission.
+//
+//
+//                //The callback method gets the result of the request.
+//            }
+
+            requestPermissions(new String[]{(Manifest.permission.ACCESS_COARSE_LOCATION)}, PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+        } else {
+            // Permission has already been granted
+            initialize();
+        }
+    }
+
+    private void initialize() {
+        setContentView(R.layout.activity_main);
         setupViewElements();
         loadPreferences();
     }
@@ -55,7 +85,6 @@ public final class MainActivity extends AppCompatActivity {
 
         TextView tresholdValue = (TextView) findViewById(R.id.tvThresoldValue);
         TextView marginValue = (TextView) findViewById(R.id.tvMarginValue);
-        TextView timerValue = (TextView) findViewById(R.id.tvTimerValue);
 
         thresholdSeekbar = (SeekBar) findViewById(R.id.seekBar_Treshold);
         ThresholdSeekbarEventhandler thresholdSeekbarEventhandler = new ThresholdSeekbarEventhandler(this);
@@ -67,13 +96,11 @@ public final class MainActivity extends AppCompatActivity {
         marginSeekbarEventhandler.setMarginValue(marginValue);
         marginSeekbar.setOnSeekBarChangeListener(marginSeekbarEventhandler);
 
-        timerIntervalSeekbar = (SeekBar) findViewById(R.id.seekBar_Timer);
-        TimerSeekbarEventhandler timerSeekbarEventHandler = new TimerSeekbarEventhandler(this);
-        timerSeekbarEventHandler.setTimerValue(timerValue);
-        timerIntervalSeekbar.setOnSeekBarChangeListener(timerSeekbarEventHandler);
-
         serviceSwitch = (Switch) findViewById(R.id.switch_serviceSwitch);
         serviceSwitch.setOnCheckedChangeListener(new ServiceSwitchButtonEventHandler(this));
+
+        serviceBinderSwitch = (Switch) findViewById(R.id.switch_serviceBound);
+        serviceBinderSwitch.setOnCheckedChangeListener(new ServiceBinderSwitchHandler(this));
 
         CheckBox cbDebugEnabled = (CheckBox) findViewById(R.id.cb_Debug);
         cbDebugEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -91,36 +118,38 @@ public final class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     private void loadPreferences() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int currentMarginValue = preferences.getInt(getResources().getString(R.string.marginpreferencename), 2);
         int currentThresholdValue = preferences.getInt(getResources().getString(R.string.thresholdpreferencename), 7);
-        int currentTimerValue = preferences.getInt(getResources().getString(R.string.timerpreferencename), 0);
         serviceRunning = preferences.getBoolean(getResources().getString(R.string.serviceswitchpreferencename), false);
+        serviceBound = preferences.getBoolean(getResources().getString(R.string.servicebinderswitchpreferencename), false);
 
         this.marginSeekbar.setProgress(currentMarginValue);
         this.thresholdSeekbar.setProgress(currentThresholdValue);
-        this.timerIntervalSeekbar.setProgress(currentTimerValue);
         this.serviceSwitch.setChecked(serviceRunning);
+        this.serviceBinderSwitch.setChecked(serviceBound);
     }
 
     /**
      * Starts the Background Service for watching WiFi Signal Strength.
      */
     public final void startSwapperService() {
+
+        //serviceRunning = isServiceRunning(WifiSwapService.class);
+        //if (!serviceRunning) {
         wifiSwapServiceIntent = new Intent(this, WifiSwapService.class);
         try {
             startService(wifiSwapServiceIntent);
-            android.content.ServiceConnection serviceConnection = new ServiceConnection();
-            bindService(wifiSwapServiceIntent, serviceConnection, Context.BIND_NOT_FOREGROUND);
             serviceRunning = true;
+            bindSwapperService();
         } catch (SecurityException secEx) {
             Log.e("WifiSwapperMain: ", "Error while starting the WifiSwapperService: " + secEx);
             logMessage("Error while starting the WifiSwapperService");
         }
+        //}
     }
 
     /**
@@ -129,6 +158,7 @@ public final class MainActivity extends AppCompatActivity {
     public final void stopSwapperService() {
         if (wifiSwapServiceIntent != null) {
             try {
+                unbindSwapperService();
                 if (serviceRunning) {
                     stopService(wifiSwapServiceIntent);
                     serviceRunning = false;
@@ -175,12 +205,48 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Callback for Handling the Change of the TimerSeekBar.
-     */
-    public void timerSeekBarChanged() {
-        if (serviceBinder != null) {
-            serviceBinder.setTimerInterval(this.timerIntervalSeekbar.getProgress());
+    public void bindSwapperService() {
+        serviceConnection = new ServiceConnection();
+        bindService(wifiSwapServiceIntent, serviceConnection, Context.BIND_NOT_FOREGROUND);
+        serviceBound = true;
+    }
+
+    public void unbindSwapperService() {
+        if (serviceConnection != null && serviceBound) {
+            unbindService(serviceConnection);
+            serviceBound = false;
+        }
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void onPause() {
+        unbindSwapperService();
+        super.onPause();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted
+                    initialize();
+                } else {
+                    // permission denied!
+                    System.exit(-1);
+                }
+            }
         }
     }
 

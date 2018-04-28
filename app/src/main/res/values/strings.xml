@@ -6,4 +6,7 @@
     <string name="label_disabled">Disabled</string>
     <string name="label_enabled">Enabled</string>
     <string name="timerpreferencename">timerpreferencename</string>
+    <string name="label_unbound">unbound</string>
+    <string name="label_bound">bound</string>
+    <string name="servicebinderswitchpreferencename">servicebinderswitchpreferencename</string>
 </resources>
